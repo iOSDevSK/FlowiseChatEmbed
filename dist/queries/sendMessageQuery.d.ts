@@ -4,7 +4,7 @@ export type IncomingInput = {
     uploads?: FileUpload[];
     overrideConfig?: Record<string, unknown>;
     socketIOClientId?: string;
-    chatId?: string;
+    chatId: string;
     fileName?: string;
     leadEmail?: string;
     action?: IAction;
@@ -50,9 +50,13 @@ export declare const updateFeedbackQuery: ({ id, apiHost, body }: UpdateFeedback
     data?: unknown;
     error?: Error | undefined;
 }>;
-export declare const sendMessageQuery: ({ chatflowid, apiHost, body }: MessageRequest) => Promise<{
+export declare const sendMessageQuery_flowise: ({ chatflowid, apiHost, body }: MessageRequest) => Promise<{
     data?: any;
     error?: Error | undefined;
+}>;
+export declare const sendMessageQuery: ({ chatflowid, apiHost, body }: MessageRequest) => Promise<{
+    data?: any;
+    error?: Error;
 }>;
 export declare const getChatbotConfig: ({ chatflowid, apiHost }: MessageRequest) => Promise<{
     data?: any;

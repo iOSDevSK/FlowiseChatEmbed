@@ -13,22 +13,31 @@ export const sendRequest = async <ResponseData>(
         method: string;
         body?: Record<string, unknown> | FormData;
         type?: string;
+        headers?: Record<string, string>;
       }
     | string,
 ): Promise<{ data?: ResponseData; error?: Error }> => {
   try {
     const url = typeof params === 'string' ? params : params.url;
+    let headers: Record<string, string> = {};
+    
+    if (typeof params !== 'string') {
+      if (params.headers) {
+        headers = { ...params.headers };
+      }
+      
+      if (isDefined(params.body)) {
+        headers['Content-Type'] = 'application/json';
+      }
+    }
+
     const response = await fetch(url, {
       method: typeof params === 'string' ? 'GET' : params.method,
       mode: 'cors',
-      headers:
-        typeof params !== 'string' && isDefined(params.body)
-          ? {
-              'Content-Type': 'application/json',
-            }
-          : undefined,
+      headers,
       body: typeof params !== 'string' && isDefined(params.body) ? JSON.stringify(params.body) : undefined,
     });
+
     let data: any;
     const contentType = response.headers.get('Content-Type');
     if (contentType && contentType.includes('application/json')) {

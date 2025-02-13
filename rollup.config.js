@@ -13,12 +13,12 @@ import { uglify } from 'rollup-plugin-uglify';
 //import livereload from "rollup-plugin-livereload";
 
 const extensions = ['.ts', '.tsx'];
+const isDev = process.env.BUILD === 'development';
 
-const indexConfig = {
+const baseConfig = {
   plugins: [
     resolve({ extensions, browser: true }),
     commonjs(),
-    uglify(),
     json(),
     babel({
       babelHelpers: 'bundled',
@@ -31,31 +31,29 @@ const indexConfig = {
       extract: false,
       modules: false,
       autoModules: false,
-      minimize: true,
+      minimize: !isDev,
       inject: false,
     }),
     typescript(),
     typescriptPaths({ preserveExtensions: true }),
-    terser({ output: { comments: false } }),
-    /* If you want to see the live app
-    serve({
-      open: true,
-      verbose: true,
-      contentBase: ["dist"],
-      host: "localhost",
-      port: 5678,
-    }),
-    livereload({ watch: "dist" }),*/
   ],
 };
 
+if (!isDev) {
+  baseConfig.plugins.push(
+    uglify(),
+    terser({ output: { comments: false } })
+  );
+}
+
 const configs = [
   {
-    ...indexConfig,
+    ...baseConfig,
     input: './src/web.ts',
     output: {
       file: 'dist/web.js',
       format: 'es',
+      sourcemap: isDev,
     },
   },
 ];

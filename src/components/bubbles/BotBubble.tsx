@@ -48,7 +48,7 @@ export const BotBubble = (props: Props) => {
     try {
       const response = await sendFileDownloadQuery({
         apiHost: props.apiHost,
-        body: { question: '', fileName: fileAnnotation.fileName },
+        body: { question: '', fileName: fileAnnotation.fileName, chatId: props.chatId },
       });
       const blob = new Blob([response.data]);
       const downloadUrl = window.URL.createObjectURL(blob);

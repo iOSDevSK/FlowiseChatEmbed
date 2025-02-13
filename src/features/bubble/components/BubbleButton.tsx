@@ -93,6 +93,8 @@ export const BubbleButton = (props: Props) => {
         style={{
           'background-color': props.backgroundColor ?? defaultButtonColor,
           'z-index': 42424242,
+          'stroke-width': "0.1",
+          'fill': props.iconColor ?? defaultIconColor,
           right: `${position().right}px`,
           bottom: `${position().bottom}px`,
           width: `${buttonSize}px`,
@@ -102,17 +104,28 @@ export const BubbleButton = (props: Props) => {
       >
         <Show when={isNotDefined(props.customIconSrc)} keyed>
           <svg
-            viewBox="0 0 24 24"
+            //viewBox="0 0 24 24"
+            viewBox="0 0 13.5 12.1"
             style={{
               stroke: props.iconColor ?? defaultIconColor,
             }}
+            //class={
+            //  `stroke-2 fill-transparent absolute duration-200 transition ` + (props.isBotOpened ? 'scale-0 opacity-0' : 'scale-100 opacity-100')
+            //}
             class={
-              `stroke-2 fill-transparent absolute duration-200 transition ` + (props.isBotOpened ? 'scale-0 opacity-0' : 'scale-100 opacity-100')
+              `absolute duration-200 transition ` + (props.isBotOpened ? 'scale-0 opacity-0' : 'scale-100 opacity-100')
             }
             width={buttonSize * 0.6}
             height={buttonSize * 0.6}
           >
-            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+            <path d="M10.6,1.4h-5C4.8,1.4,4.2,1.9,4,2.6H2.9C2,2.6,1.3,3.3,1.3,4.2v3.3c0,0.9,0.7,1.6,1.6,1.6h0.9
+  c-0.1,0.6-0.6,1.3-0.8,1.6l-0.3,0.4l0.5,0c1.3,0,2.4-1.2,3-1.9h1.5c0.2,0,0.4,0,0.7-0.1c0.6,0.5,1.3,1,2.1,1c0,0-1-1.2-1-2.1h1.2
+  c0.8,0,1.5-0.7,1.5-1.5V2.9C12.1,2.1,11.4,1.4,10.6,1.4L10.6,1.4L10.6,1.4z M6.1,3.9c0.3,0,0.6,0.3,0.6,0.6S6.4,5.1,6.1,5.1
+  S5.6,4.8,5.6,4.5l0,0C5.6,4.2,5.8,3.9,6.1,3.9C6.1,3.9,6.1,3.9,6.1,3.9z M7.6,8.7H5.9L5.8,8.8c-0.4,0.6-1.3,1.5-2.2,1.8
+  c0.3-0.4,0.7-1.1,0.6-1.7l0-0.2H2.9c-0.7,0-1.2-0.5-1.2-1.2V4.2C1.7,3.6,2.2,3,2.9,3H4v3.4c0,0.8,0.7,1.5,1.5,1.5h1.7
+  c0.2,0.3,0.4,0.5,0.6,0.7C7.8,8.7,7.7,8.7,7.6,8.7L7.6,8.7L7.6,8.7z M8.2,5.1c-0.3,0-0.6-0.3-0.6-0.6c0-0.3,0.3-0.6,0.6-0.6
+  c0.3,0,0.6,0.3,0.6,0.6S8.5,5.1,8.2,5.1L8.2,5.1L8.2,5.1z M10.3,5.1c-0.3,0-0.6-0.3-0.6-0.6c0-0.3,0.3-0.6,0.6-0.6
+  c0.3,0,0.6,0.3,0.6,0.6l0,0C10.9,4.8,10.6,5.1,10.3,5.1L10.3,5.1L10.3,5.1z" />
           </svg>
         </Show>
         <Show when={props.customIconSrc}>

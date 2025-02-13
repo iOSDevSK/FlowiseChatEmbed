@@ -9,7 +9,7 @@ import { SourceBubble } from './bubbles/SourceBubble';
 import { StarterPromptBubble } from './bubbles/StarterPromptBubble';
 import { BotMessageTheme, FooterTheme, TextInputTheme, UserMessageTheme, FeedbackTheme } from '@/features/bubble/types';
 import { Badge } from './Badge';
-import socketIOClient from 'socket.io-client';
+// import socketIOClient from 'socket.io-client';
 import { Popup } from '@/features/popup';
 import { Avatar } from '@/components/avatars/Avatar';
 import { DeleteButton, SendButton } from '@/components/buttons/SendButton';
@@ -228,8 +228,8 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     { equals: false },
   );
 
-  const [socketIOClientId, setSocketIOClientId] = createSignal('');
-  const [isChatFlowAvailableToStream, setIsChatFlowAvailableToStream] = createSignal(false);
+  //const [socketIOClientId, setSocketIOClientId] = createSignal('');
+  //const [isChatFlowAvailableToStream, setIsChatFlowAvailableToStream] = createSignal(false);
   const [chatId, setChatId] = createSignal(
     (props.chatflowConfig?.vars as any)?.customerId ? `${(props.chatflowConfig?.vars as any).customerId.toString()}+${uuidv4()}` : uuidv4(),
   );
@@ -254,6 +254,8 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
   const [isDragActive, setIsDragActive] = createSignal(false);
 
   onMount(() => {
+    //vymaže chat pri načítní webstránky
+    clearChat();
     if (botProps?.observersConfig) {
       const { observeUserInput, observeLoading, observeMessages } = botProps.observersConfig;
       typeof observeUserInput === 'function' &&
@@ -306,7 +308,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
   // Define the audioRef
   let audioRef: HTMLAudioElement | undefined;
   // CDN link for default receive sound
-  const defaultReceiveSound = 'https://cdn.jsdelivr.net/gh/FlowiseAI/FlowiseChatEmbed@latest/src/assets/receive_message.mp3';
+  const defaultReceiveSound = 'operator.mp3';
   const playReceiveSound = () => {
     if (props.textInput?.receiveMessageSound) {
       let audioSrc = defaultReceiveSound;
@@ -456,79 +458,50 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
 
     if (action) body.action = action;
 
-    if (isChatFlowAvailableToStream()) {
-      body.socketIOClientId = socketIOClientId();
-    } else {
-      setMessages((prevMessages) => [...prevMessages, { message: '', type: 'apiMessage' }]);
+    if (!props.apiHost) {
+      handleError('API host is not provided');
+      return;
     }
 
-    const result = await sendMessageQuery({
-      chatflowid: props.chatflowid,
-      apiHost: props.apiHost,
-      body,
-    });
+    try {
+      const result = await sendMessageQuery({
+        chatflowid: props.chatflowid,
+        apiHost: props.apiHost,
+        body,
+      });
 
-    if (result.data) {
-      const data = result.data;
-      const question = data.question;
-      if (value === '' && question) {
-        setMessages((data) => {
-          const messages = data.map((item, i) => {
-            if (i === data.length - 2) {
-              return { ...item, message: question };
-            }
-            return item;
-          });
-          addChatMessage(messages);
-          return [...messages];
-        });
+      if (result.error) {
+        throw result.error;
       }
-      if (urls && urls.length > 0) {
-        setMessages((data) => {
-          const messages = data.map((item, i) => {
-            if (i === data.length - 2) {
-              if (item.fileUploads) {
-                const fileUploads = item?.fileUploads.map((file) => ({
-                  type: file.type,
-                  name: file.name,
-                  mime: file.mime,
-                }));
-                return { ...item, fileUploads };
-              }
-            }
-            return item;
-          });
-          addChatMessage(messages);
-          return [...messages];
-        });
-      }
-      if (!isChatFlowAvailableToStream()) {
-        let text = '';
-        if (data.text) text = data.text;
-        else if (data.json) text = JSON.stringify(data.json, null, 2);
-        else text = JSON.stringify(data, null, 2);
 
-        updateLastMessage(text, data?.chatMessageId, data?.sourceDocuments, data?.fileAnnotations, data?.agentReasoning, data?.action, data.text);
+      if (result.data && result.data.type === 'text' && result.data.response && result.data.response.text) {
+        // Pridanie správy bota
+        setMessages((prevMessages) => {
+          const messages: MessageType[] = [
+            ...prevMessages,
+            {
+              message: result.data.response.text,
+              type: 'apiMessage',
+              messageId: result.data.chatMessageId || '',
+              sourceDocuments: result.data.sourceDocuments || null,
+              fileAnnotations: result.data.fileAnnotations || null,
+              agentReasoning: result.data.agentReasoning || [],
+              action: result.data.action || null,
+            },
+          ];
+          addChatMessage(messages);
+          return messages;
+        });
       } else {
-        updateLastMessage('', data?.chatMessageId,data?.sourceDocuments, data?.fileAnnotations, data?.agentReasoning, data?.action, data.text);
+        handleError('Unexpected response format from server');
       }
+
       setLoading(false);
       setUserInput('');
       scrollToBottom();
-    }
-    if (result.error) {
-      const error = result.error;
-      console.error(error);
-      if (typeof error === 'object') {
-        handleError(`Error: ${error?.message.replaceAll('Error:', ' ')}`);
-        return;
-      }
-      if (typeof error === 'string') {
-        handleError(error);
-        return;
-      }
-      handleError();
-      return;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      handleError('An error occurred while sending the message');
     }
   };
 
@@ -625,21 +598,21 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     }
 
     // Determine if particular chatflow is available for streaming
-    const { data } = await isStreamAvailableQuery({
+    /*const { data } = await isStreamAvailableQuery({
       chatflowid: props.chatflowid,
       apiHost: props.apiHost,
-    });
+    });*/
 
-    if (data) {
+    /*if (data) {
       setIsChatFlowAvailableToStream(data?.isStreaming ?? false);
-    }
+    }*/
 
     // Get the chatbotConfig
-    const result = await getChatbotConfig({
+    /* const result = await getChatbotConfig({
       chatflowid: props.chatflowid,
       apiHost: props.apiHost,
     });
-
+    
     if (result.data) {
       const chatbotConfig = result.data;
       if ((!props.starterPrompts || props.starterPrompts?.length === 0) && chatbotConfig.starterPrompts) {
@@ -662,11 +635,11 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
           setMessages((prevMessages) => [...prevMessages, { message: '', type: 'leadCaptureMessage' }]);
         }
       }
-    }
+    } */
 
-    const socket = socketIOClient(props.apiHost as string);
+    //const socket = socketIOClient(props.apiHost as string);
 
-    socket.on('connect', () => {
+    /* socket.on('connect', () => {
       setSocketIOClientId(socket.id);
     });
 
@@ -680,7 +653,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
 
     socket.on('action', updateLastMessageAction);
 
-    socket.on('token', updateLastMessage);
+    socket.on('token', updateLastMessage);*/
 
     // eslint-disable-next-line solid/reactivity
     return () => {
@@ -692,10 +665,10 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
           type: 'apiMessage',
         },
       ]);
-      if (socket) {
+      /*if (socket) {
         socket.disconnect();
         setSocketIOClientId('');
-      }
+      }*/
     };
   });
 
@@ -897,6 +870,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     setPreviews(previews().filter((item) => item !== itemToDelete));
   };
 
+  //Load and Send Voice Message
   const onMicrophoneClicked = () => {
     setIsRecording(true);
     startAudioRecording(setIsRecording, setRecordingNotSupported, setElapsedTime);

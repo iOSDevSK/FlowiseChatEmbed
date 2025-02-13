@@ -42,6 +42,9 @@ export type FooterTheme = {
   text?: string;
   company?: string;
   companyLink?: string;
+  privacyPolicyText?: string;
+  privacyPolicyLinkText?: string;
+  privacyPolicyUrl?: string;
 };
 
 export type FeedbackTheme = {
